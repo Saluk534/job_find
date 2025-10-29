@@ -1,0 +1,27 @@
+# promtail-config.yml
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml # שומר איפה Promtail הפסיק לקרוא
+
+clients:
+  # ה-Agent שולח ללוקי באמצעות שם השירות הפנימי
+  - url: http://loki:3100/loki/api/v1/push 
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets: ['localhost']
+        labels:
+          # תיוג הלוגים: לפי שם השירות (שם הקונטיינר)
+          job: docker-logs
+          __path__: /var/lib/docker/containers/*/*log
+    # הוספת תווית עם שם הקונטיינר לכל לוג
+    pipeline_stages:
+      - docker: {}
+      - labels:
+          container_name: ""
+          container_id: ""
+          image: ""

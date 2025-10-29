@@ -1,8 +1,11 @@
 version: "3.9"
 
+
+
 services:
   db:
     image: postgres:16-alpine
+
     environment:
       POSTGRES_PASSWORD: postgres
     healthcheck:
@@ -13,6 +16,7 @@ services:
     networks: [appnet]
   
   redis:
+
     image: redis:6-alpine 
     networks: [appnet]
     healthcheck:
@@ -22,6 +26,7 @@ services:
       retries: 3 
 
   proxy:
+  
       image: nginx:latest  # שימוש באימג' Nginx רשמי
       volumes:
         # **מיפוי הקובץ:** קח את הקונפיגורציה המקומית וטען אותה למיקום הנכון בתוך הקונטיינר
@@ -35,6 +40,7 @@ services:
       networks: [appnet]
       
   api:
+
     build: ./api
     environment:
       DB_URL: postgres://postgres:postgres@db:5432/postgres
@@ -48,12 +54,14 @@ services:
     networks: [appnet]
 
   ui:
+
     build: ./ui
     depends_on: [api]
     networks: [appnet]
 
   
   prometheus:
+  
       image: prom/prometheus:latest
       networks: [appnet]
       command:
@@ -68,6 +76,7 @@ services:
       depends_on: [api]
 
   grafana:
+
     image: grafana/grafana:latest
     networks: [appnet]
     ports:
@@ -78,7 +87,29 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on: [prometheus]
 
+  loki:
 
+    image: grafana/loki:latest
+    networks: [appnet]
+    ports:
+      - "3100:3100" 
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./local-config.yaml:/etc/loki/local-config.yaml:ro
+
+
+  promtail:
+  
+      image: grafana/promtail:latest
+      networks: [appnet]
+      command: -config.file=/etc/promtail/config.yml
+      volumes:
+        - ./promtail-config.yml:/etc/promtail/config.yml
+        - /var/log:/var/log
+        - /var/lib/docker/containers:/var/lib/docker/containers:ro
+        - /var/run/docker.sock:/var/run/docker.sock:ro 
+      depends_on:
+        - loki
 networks:
   appnet:
     driver: bridge
