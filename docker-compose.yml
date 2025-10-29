@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+    networks: [appnet]
+
+  proxy:
+      image: nginx:latest  # שימוש באימג' Nginx רשמי
+      volumes:
+        # **מיפוי הקובץ:** קח את הקונפיגורציה המקומית וטען אותה למיקום הנכון בתוך הקונטיינר
+        - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      depends_on:
+        - api
+        - ui
+      ports:
+        # **חשיפה יחידה:** רק הפרוקסי חשוף לעולם החיצון (דרך פורט 80)
+        - "80:80"
+      networks: [appnet]
+      
+  api:
+    build: ./app
+    environment:
+      DB_URL: postgres://postgres:postgres@db:5432/postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [appnet]
+
+  ui:
+    build: ./ui
+    depends_on: [api]
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge

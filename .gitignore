@@ -1,0 +1,15 @@
+
+.env
+*.env
+
+
+node_modules/
+api/node_modules/
+ui/node_modules/
+
+dist/
+ui/dist/
+api/dist/
+
+.DS_Store
+Thumbs.db
