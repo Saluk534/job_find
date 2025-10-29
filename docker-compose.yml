@@ -52,6 +52,33 @@ services:
     depends_on: [api]
     networks: [appnet]
 
+  
+  prometheus:
+      image: prom/prometheus:latest
+      networks: [appnet]
+      command:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --web.enable-lifecycle
+      ports:
+        - "9090:9090" # חשיפת הממשק של Prometheus לצורך בדיקה
+      volumes:
+        # מיפוי קובץ הקונפיגורציה שיצרנו
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+      depends_on: [api]
+
+  grafana:
+    image: grafana/grafana:latest
+    networks: [appnet]
+    ports:
+      - "3000:3000" # חשיפת ממשק Grafana
+    environment:
+      # הגדרות ברירת מחדל לחיבור וסיסמה
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on: [prometheus]
+
+
 networks:
   appnet:
     driver: bridge

@@ -1,0 +1,18 @@
+# prometheus.yml
+global:
+  # מגדיר את זמן ברירת המחדל בין "גירוד" (Scrape) של מדדים
+  scrape_interval: 15s 
+
+scrape_configs:
+  # 1. ניטור עצמי של Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090'] # הפורט הפנימי של Prometheus
+
+  # 2. ניטור שירות ה-API שלך
+  - job_name: 'api_server'
+    # זה הכרחי - ה-API יחשוף את המדדים שלו תחת Endpoint /metrics
+    metrics_path: /metrics 
+    static_configs:
+      # Prometheus מתחבר אל שם השירות הפנימי (api) בפורט 8000
+      - targets: ['api:8000']
