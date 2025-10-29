@@ -7,7 +7,42 @@ import pinoHttp from 'pino-http'
 import Redis from 'ioredis'
 const app = express()
 app.set('trust proxy', true)
+// src/index.ts (בתוך שירות ה-API)
 
+import promClient from 'prom-client';
+// ... שאר הייבוא ...
+
+// 💡 1. הגדרת רג'יסטרי גלובלי
+const register = new promClient.Registry();
+promClient.collectDefaultMetrics({ register }); // איסוף מדדי ברירת מחדל של Node.js (CPU, Memory, GC)
+
+// 💡 2. הוספת מדד ספציפי (דוגמה)
+const httpRequestsTotal = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+});
+register.registerMetric(httpRequestsTotal);
+
+// 💡 3. הוספת המדד ל-API
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
+// 💡 4. הוספת לוגיקה למונה (דוגמה) - הוסף את זה לפני כל res.json
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    httpRequestsTotal.inc({
+      method: req.method,
+      route: req.route ? req.route.path : req.path,
+      status_code: res.statusCode,
+    });
+  });
+  next();
+});
+
+// ... שאר הקוד וה-Endpoints ...
 // ✅ Allow requests from frontend
 // app.use(cors({ origin: 'http://localhost:5173' }))
 // ...
