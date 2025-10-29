@@ -23,6 +23,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "ioredis": "^5.8.2",
     "pg": "^8.16.3",
     "pino": "^8.17.2",
     "pino-http": "^8.6.1",

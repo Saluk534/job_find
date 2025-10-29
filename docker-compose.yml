@@ -11,6 +11,15 @@ services:
       timeout: 2s
       retries: 5
     networks: [appnet]
+  
+  redis:
+    image: redis:6-alpine 
+    networks: [appnet]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 3 
 
   proxy:
       image: nginx:latest  # שימוש באימג' Nginx רשמי
@@ -29,8 +38,12 @@ services:
     build: ./api
     environment:
       DB_URL: postgres://postgres:postgres@db:5432/postgres
+      REDIS_HOST: redis 
+      REDIS_PORT: 6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks: [appnet]
 
