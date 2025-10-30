@@ -1,6 +1,3 @@
-Excellent\! Presenting a professional and well-documented `README.md` in English is key to leaving a strong impression during your interview process with TRIGO.
-
-Here is the detailed `README.md` for your project, formatted in Markdown:
 
 -----
 
