@@ -128,8 +128,9 @@ async function initDb() {
     `)
     console.log("✅ users table ready")
   }
-  // initDb()
+initDb()
   
+
 app.get('/db-check', async (req: Request, res: Response) => {
   try {
     const result = await pool.query('SELECT 1 as ok')
